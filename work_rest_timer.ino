@@ -1,13 +1,11 @@
-//define headers
-
 //define macros
 #define MIN_TIME 0
 #define MAX_TIME 100
 
 //define pins
 const int ledPin = 2; 
-const int startButtonPin = 34;
-const int stopButtonPin = 35; 
+const int startButtonPin = 32;
+//const int stopButtonPin = 35; 
 const int enc_A = 25; //encoder clk
 const int enc_B = 33; //encoder dt
 
@@ -57,7 +55,7 @@ void setup()
   // put your setup code here, to run once:
   pinMode(ledPin, OUTPUT);
   pinMode(startButtonPin, INPUT);
-  pinMode(stopButtonPin, INPUT_PULLDOWN);
+  //pinMode(stopButtonPin, INPUT_PULLDOWN);
   pinMode(enc_A, INPUT); 
   pinMode(enc_B, INPUT);
   Serial.begin(9600); 
@@ -73,9 +71,9 @@ void loop()
   switch(timer_state)
   {
     case 0: //idle
-      if(digitalRead(startButtonPin))
+      if(!digitalRead(startButtonPin))
       {
-        work_time = 0; 
+        work_time = 0;
         rest_time = 0;
         timer_state = 1;//set work time
         Serial.println("Set work time..."); 
@@ -84,7 +82,7 @@ void loop()
       break;
     case 1: //set work time
       encoder_rotation();
-      if(digitalRead(startButtonPin))
+      if(!digitalRead(startButtonPin))
       {
         work_time = timer_cntr; 
         Serial.print("Work time set to: ");
@@ -98,7 +96,7 @@ void loop()
       break;
     case 2: //set rest time
       encoder_rotation();
-      if(digitalRead(startButtonPin))
+      if(!digitalRead(startButtonPin))
       {
         rest_time = timer_cntr; 
         Serial.print("Rest time set to: ");
@@ -115,7 +113,7 @@ void loop()
       curtime = millis();
       timer_val = int((curtime - prevtime)/1000);
       Serial.print("Work Time: "); 
-      Serial.print(timer_val); 
+      Serial.print(work_time - timer_val); 
       Serial.println(" sec");
       if(timer_val >= work_time)
       {
@@ -128,7 +126,7 @@ void loop()
       curtime = millis();
       timer_val = int((curtime - prevtime)/1000);
       Serial.print("Rest Time: "); 
-      Serial.print(timer_val); 
+      Serial.print(rest_time - timer_val); 
       Serial.println(" sec");
       if(timer_val >= rest_time)
       {
@@ -147,7 +145,7 @@ void loop()
       timer_state = 0;
       break;
   }
-  if(digitalRead(stopButtonPin) && timer_state != 0)//exit if stop
+  if(!digitalRead(startButtonPin) && (timer_state == 3 || timer_state == 4))//exit if stop
   {
     timer_cntr = MIN_TIME;
     timer_state = 5;//exit
