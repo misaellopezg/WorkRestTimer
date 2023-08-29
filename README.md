@@ -1,7 +1,7 @@
 # WorkRestTimer
 Repo for work/rest timer project.
 
-###Change Log
+### Change Log
 28-AUG-2023
 - Winston requested to only use one button, specifically the encoder
 - Winston requested having the timer count down instead of up
