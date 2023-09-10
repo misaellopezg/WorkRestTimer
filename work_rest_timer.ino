@@ -5,8 +5,8 @@
 #include <Adafruit_SSD1306.h>
 
 //define macros
-#define MIN_TIME 0
-#define MAX_TIME 99
+#define MIN_TIME 0 //Minutes
+#define MAX_TIME 99 //Minutes
 
 //display stuff
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -18,22 +18,26 @@
 const int ledPin = 13; 
 const int startButtonPin = 2;
 //const int stopButtonPin = 35; 
-const int enc_A = 4; //encoder clk
-const int enc_B = 3; //encoder dt
+const int enc_A = 3; //encoder clk
+const int enc_B = 4; //encoder dt
 
 //variables
-int state_machine = 0;
-int timer_state = 0;
-int timer_val = 0;
+//int state_machine = 0;
+int timer_state = 0; //contains timer state machine: 0 = idle, etc....
+float timer_val = 0; //contains elapsed time, stored in float to display seconds
+int work_time = 0; //work time in minutes
+int rest_time = 0; // work time in seconds
+
 unsigned long prevtime = 0;
 unsigned long curtime = 0;
 int aState = 0; 
 int aLastState = 0;
-int timer_cntr = 0;
-int work_time = 0; 
-int rest_time = 0;
+int timer_cntr = 0;//buffer variable containing set time in minutes for work/rest
 int prev_timedisp[] = {0,0,0,0}; 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+int encoder_movement = 0;
+unsigned long encoder_delay = 0;
+unsigned long prevencoder_delay = 0;
 
 void setup() 
 {
@@ -41,8 +45,9 @@ void setup()
   pinMode(ledPin, OUTPUT);
   pinMode(startButtonPin, INPUT);
   //pinMode(stopButtonPin, INPUT_PULLDOWN);
-  pinMode(enc_A, INPUT); 
+  //pinMode(enc_A, INPUT); 
   pinMode(enc_B, INPUT);
+  attachInterrupt(digitalPinToInterrupt(enc_A), encoder_rotation, FALLING);
   Serial.begin(9600); 
   aLastState = digitalRead(enc_A);
   timer_state = 0; 
@@ -55,8 +60,7 @@ void setup()
   }
   display.clearDisplay();
   delay(500);
-  drawText("Press To Start");
-  delay(500);
+  drawText("TIMER", 2, (SCREEN_WIDTH-1)/4, (SCREEN_HEIGHT-1)/2);
 }
 
 void loop() 
@@ -72,26 +76,27 @@ void loop()
         timer_state = 1;//set work time
         display.clearDisplay();
         delay(10);
-        drawText("Set work time:");
+        drawText("Work Time", 2, (SCREEN_WIDTH-1)/8, (SCREEN_HEIGHT-1)/8);
+        drawTimerInit();
         delay(1500);
       }
       break;
     case 1: //set work time
-      encoder_rotation();
-      //drawTimer(timer_cntr);
+      drawTimer(timer_cntr);
       if(!digitalRead(startButtonPin))
       {
         work_time = timer_cntr; 
         display.clearDisplay();
         delay(10);
         timer_state = 2;//set rest time
-        drawText("Set rest time:");
+        drawText("Rest Time", 2, (SCREEN_WIDTH-1)/8, (SCREEN_HEIGHT-1)/8);
+        drawTimerInit();
         timer_cntr = MIN_TIME;
         delay(1500);
       }
       break;
     case 2: //set rest time
-      encoder_rotation();
+      drawTimer(timer_cntr);
       if(!digitalRead(startButtonPin))
       {
         rest_time = timer_cntr; 
@@ -99,17 +104,25 @@ void loop()
         delay(10);
         timer_cntr = MIN_TIME;
         timer_state = 3;//count work time
-        drawText("Starting...");
-        delay(100);
-        drawTimerInit(); 
+        //drawText("Starting...");
+        Serial.println("Josh Builds a Wall"); 
+        drawTimer(100 + work_time);
+        delay(1500);
         prevtime = millis();//set previous time to calculate elapsed time
       }
       break;
     case 3: //count work time
       curtime = millis();
-      timer_val = int((curtime - prevtime)/1000);
-      drawTimer(work_time - timer_val); 
-      if(timer_val >= work_time)
+      timer_val = float(curtime - prevtime)/60000;
+      if( (float(work_time)- timer_val) < 1.0)
+      {
+        drawTimer(float((work_time)- timer_val)*60.0);
+      }
+      else
+      {
+        drawTimer(work_time - int(timer_val)); 
+      }
+      if(int(timer_val) >= work_time)
       {
         timer_val = 0;
         prevtime = millis();//set previous time to calculate elapsed time
@@ -118,9 +131,16 @@ void loop()
       break;
     case 4: //count rest time
       curtime = millis();
-      timer_val = int((curtime - prevtime)/1000);
-      drawTimer(rest_time - timer_val); 
-      if(timer_val >= rest_time)
+      timer_val = float(curtime - prevtime)/60000;
+      if( (float(rest_time)- timer_val) < 1.0)
+      {
+        drawTimer(float((rest_time)- timer_val)*60.0);
+      }
+      else
+      {
+        drawTimer(rest_time - int(timer_val)); 
+      }
+      if(int(timer_val) >= rest_time)
       {
         timer_val = 0;
         prevtime = millis();
@@ -129,13 +149,8 @@ void loop()
       break;
     case 5: //exiting
       display.clearDisplay();
-      delay(100);
-      drawText("Exiting..."); 
       delay(1500);
-      display.clearDisplay();
-      delay(100);
-      drawText("Press To Start");
-      delay(100);
+      drawText("TIMER", 2, (SCREEN_WIDTH-1)/4, (SCREEN_HEIGHT-1)/2);
       timer_state = 0;
       break;
     default:
@@ -178,26 +193,25 @@ void encoder_rotation()
    aLastState = aState; // Updates the previous state of the outputA with the current state
 }
 
-void drawText(String text) 
+void drawText(String text, int size, int x, int y) 
 {
   display.clearDisplay();
-  display.setTextSize(1);             // Normal 1:1 pixel scale
-  display.setTextColor(SSD1306_WHITE);        // Draw white text
-  display.setCursor(0,0);             // Start at top-left corner
+  display.setTextSize(size);// Set pixel scale
+  display.setTextColor(SSD1306_WHITE);// Draw white text
+  display.setCursor(x,y);// Start at top-left corner
   display.println(text);
   display.display();
-  delay(500);
+  delay(250);
 }
-
 
 void drawTimerInit()
 {
   display.setTextSize(2);
   display.setTextColor(SSD1306_WHITE);
 
-  display.setCursor(15, (SCREEN_HEIGHT-1)/2);
-  display.println(0);
-  delay(1);
+  //display.setCursor(15, (SCREEN_HEIGHT-1)/2);
+  //display.println(0);
+  //delay(1);
 
   display.setCursor(47, (SCREEN_HEIGHT-1)/2);
   display.println(0);
@@ -207,20 +221,22 @@ void drawTimerInit()
   display.println(0);
   delay(1);
 
-  display.setCursor(111, (SCREEN_HEIGHT-1)/2);
-  display.println(0);
-  delay(1);
+  //display.setCursor(111, (SCREEN_HEIGHT-1)/2);
+  //display.println(0);
+  //delay(1);
 }
-void drawTimer(int time)
+
+void drawTimer(int time) //
 {
   int timedisp[] = {0,0,0,0};
   int i = 0;
-  while(time > 0 && i < 4)
+  while(time > 0 && i < 2)
   {
-    timedisp[i] = time%10;
+    timedisp[i+1] = time%10;
     time = (time - time%10)/10;
     i++;
   }
+  /*
   if(timedisp[3] != prev_timedisp[3])
   {
     clearDisplay3();
@@ -230,6 +246,7 @@ void drawTimer(int time)
     display.println(timedisp[3]);
     delay(1);
   }
+  */
   if(timedisp[2] != prev_timedisp[2])
   {
     clearDisplay2();
@@ -248,7 +265,7 @@ void drawTimer(int time)
     display.println(timedisp[1]);
     delay(1);
   }
-
+  /*
   if(timedisp[0] != prev_timedisp[0])
   {
     clearDisplay0();
@@ -258,6 +275,8 @@ void drawTimer(int time)
     display.println(timedisp[0]);
     delay(1);
   }
+  */
+  
   display.display();
   for(int x = 0; x < sizeof(prev_timedisp); x++)
   {
@@ -311,7 +330,6 @@ void clearDisplay0()
 
 void drawHorizontalLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1) 
 {
-
   //display.clearDisplay(); // Clear display buffer
   display.drawLine(x0, y0, x1, y1, SSD1306_WHITE);
   display.display(); // Update screen with each newly-drawn line
