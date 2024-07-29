@@ -9,3 +9,5 @@ Repo for work/rest timer project.
 31-AUG-2023
 - I got the SSD1306 display working with an Arduino Nano. I can switch back to the ESP32 using Vin but have to use logic shifters to go from 5V to 3.3V
 - Need to work on how to update display without messing up the input timing of the encoder. 
+23-SEP-2023
+- Got it working! Now I am switching the OLED display for a 7-segment display.
