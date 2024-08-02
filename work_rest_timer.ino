@@ -185,7 +185,17 @@ void loop()
   cur_pulse_time = millis();
 }
 
-//tasks
+/*
+ * Function: encoder_rotation
+ * -------------------------
+ * Detects encoder rotation and increments or decrements the timer counter based on rotation
+ * 
+ * Parameters:
+ *   N/A
+ * 
+ * Returns:
+ *   N/A
+ */
 void encoder_rotation()
 {
   aState = digitalRead(enc_A); // Reads the "current" state of the outputA
@@ -193,6 +203,9 @@ void encoder_rotation()
    if (aState != aLastState)
    {     
      // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
+     //Increment or decrement the timer counter.
+     //For simplification, the timer counter will be multiplied by 5 to represent the number of minutes to count down.
+     //For example: timer_ctr = 5 would mean the user has set the timer to 25 minutes (5 * 5).
      if (digitalRead(enc_B) != aState) 
      { 
        timer_cntr ++;
@@ -208,12 +221,25 @@ void encoder_rotation()
      {
        timer_cntr = 0;
      }
-     Serial.print("Encoder Val: ");
-     Serial.println(timer_cntr);
+     //Serial.print("Encoder Val: ");
+     //Serial.println(timer_cntr);
    } 
    aLastState = aState; // Updates the previous state of the outputA with the current state
 }
 
+/*
+ * Function: displaytimeselect
+ * -------------------------
+ * Based on the encoder rotation, turns on set number of leds to a work/rest color based on the timer counter value set.
+ * 
+ * Parameters:
+ *   time: time representing the number of leds to turn on
+ *   color1: NOT USED
+ *   color2: sets the color of the leds that will turn on
+ * 
+ * Returns:
+ *   N/A
+ */
 void displaytimeselect(int time, uint32_t color1, uint32_t color2)
 {
   strip.fill(strip.Color(255,255,255),0,15);
@@ -225,14 +251,7 @@ void displaytimeselect(int time, uint32_t color1, uint32_t color2)
   {
     for(int x = 0; x < time; x++)
     {
-      if(x == 0 || x == 1 || x == 4 || x == 5 || x == 8 || x == 9 || x == 12 || x == 13)
-      {
         strip.setPixelColor(x, color2);
-      }
-      else
-      {
-        strip.setPixelColor(x, color2);
-      }
     }
     for(int y = time; y < 15; y++)
     {
