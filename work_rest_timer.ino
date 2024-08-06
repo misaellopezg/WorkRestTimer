@@ -12,6 +12,7 @@ State machine:
 5 - count down rest time
 6 - exit
 */
+
 //Define Libraries
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h> //adafruit neopixel strip driver
@@ -208,10 +209,10 @@ void encoder_rotation()
      //For example: timer_ctr = 5 would mean the user has set the timer to 25 minutes (5 * 5).
      if (digitalRead(enc_B) != aState) 
      { 
-       timer_cntr ++;
+       timer_cntr --; 
      } else 
      {
-       timer_cntr --;
+       timer_cntr ++;
      }
      if(timer_cntr > 15)
      {
