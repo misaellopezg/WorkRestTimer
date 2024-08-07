@@ -34,7 +34,7 @@ blue or orange depending on the time counting down. As work or rest time counts 
 
 ## Schematics
 
-[[schematics/work-rest-timer-schematic.png]]
+![Schematic Block Diagram](schematics/work-rest-timer-schematic.png)
 
 ## License
 
