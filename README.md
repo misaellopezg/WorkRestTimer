@@ -1,7 +1,6 @@
 # Work/Rest Timer
 
-This project was done for buildspace nights & weekends. This is a prototype work/rest timer, where users can set
-a work time and a rest time. The timer has two neopixel strips that count down time visually by fading.
+This project was done for [buildspace nights & weekends](https://sage.buildspace.so/). You can view the [complete project here](https://sage.buildspace.so/projects/immerge-VjvrTNt), which one a Season 5 grant. This is a prototype work/rest timer, where users can set a work time and a rest time. The timer has two neopixel strips that count down time visually by fading.
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -37,5 +36,4 @@ blue or orange depending on the time counting down. As work or rest time counts 
 ![Schematic Block Diagram](schematics/work-rest-timer-schematic.png)
 
 ## License
-
-
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
